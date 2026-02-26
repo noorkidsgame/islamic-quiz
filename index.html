@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Noor Kids - Islamic Quiz Game</title>
+
+<style>
+body{
+    font-family: Arial, sans-serif;
+    background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+    color: white;
+    text-align: center;
+    padding: 20px;
+}
+
+.container{
+    background: rgba(0,0,0,0.6);
+    padding: 20px;
+    border-radius: 15px;
+    max-width: 500px;
+    margin: auto;
+}
+
+button{
+    display: block;
+    width: 100%;
+    margin: 10px 0;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.correct{
+    background-color: #2ecc71;
+}
+
+.wrong{
+    background-color: #e74c3c;
+}
+
+.normal{
+    background-color: #3498db;
+    color: white;
+}
+
+#score{
+    margin-top: 15px;
+    font-size: 18px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+<h2>🌙 Noor Kids Islamic Quiz</h2>
+<h3 id="question"></h3>
+<div id="options"></div>
+<div id="score"></div>
+</div>
+
+<script>
+
+const quiz = [
+{
+question: "اسلام کے کتنے ارکان ہیں؟",
+options: ["3", "4", "5", "6"],
+answer: "5"
+},
+{
+question: "قرآن مجید کس مہینے میں نازل ہوا؟",
+options: ["محرم", "رمضان", "شوال", "ربیع الاول"],
+answer: "رمضان"
+},
+{
+question: "پہلی فرض نماز کونسی ہے؟",
+options: ["فجر", "ظہر", "مغرب", "عشاء"],
+answer: "فجر"
+}
+];
+
+let currentQuestion = 0;
+let score = 0;
+
+function loadQuestion(){
+document.getElementById("score").innerHTML = "";
+const q = quiz[currentQuestion];
+document.getElementById("question").innerText = q.question;
+const optionsDiv = document.getElementById("options");
+optionsDiv.innerHTML = "";
+
+q.options.forEach(option => {
+const btn = document.createElement("button");
+btn.innerText = option;
+btn.classList.add("normal");
+btn.onclick = () => checkAnswer(option);
+optionsDiv.appendChild(btn);
+});
+}
+
+function checkAnswer(selected){
+if(selected === quiz[currentQuestion].answer){
+score++;
+}
+currentQuestion++;
+
+if(currentQuestion < quiz.length){
+loadQuestion();
+}else{
+document.getElementById("question").innerText = "🎉 گیم ختم! آپ کا اسکور: " + score;
+document.getElementById("options").innerHTML = "";
+}
+}
+
+loadQuestion();
+
+</script>
+
+</body>
+</html>
