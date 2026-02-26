@@ -3,52 +3,52 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Noor Kids - Islamic Quiz Game</title>
+<title>Noor Kids Islamic Quiz</title>
 
 <style>
-body{
-    font-family: Arial, sans-serif;
-    background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
-    color: white;
-    text-align: center;
-    padding: 20px;
+body {
+  font-family: Arial;
+  background: linear-gradient(135deg,#0f2027,#2c5364);
+  color: white;
+  text-align: center;
+  padding: 20px;
 }
 
-.container{
-    background: rgba(0,0,0,0.6);
-    padding: 20px;
-    border-radius: 15px;
-    max-width: 500px;
-    margin: auto;
+.container {
+  background: #111;
+  padding: 20px;
+  border-radius: 15px;
+  max-width: 400px;
+  margin: auto;
 }
 
-button{
-    display: block;
-    width: 100%;
-    margin: 10px 0;
-    padding: 10px;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    cursor: pointer;
+button {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  background: #3498db;
+  color: white;
 }
 
-.correct{
-    background-color: #2ecc71;
+button:hover {
+  opacity: 0.8;
 }
 
-.wrong{
-    background-color: #e74c3c;
+.correct {
+  background: green !important;
 }
 
-.normal{
-    background-color: #3498db;
-    color: white;
+.wrong {
+  background: red !important;
 }
 
-#score{
-    margin-top: 15px;
-    font-size: 18px;
+#scoreScreen {
+  display: none;
 }
 </style>
 </head>
@@ -57,9 +57,17 @@ button{
 
 <div class="container">
 <h2>🌙 Noor Kids Islamic Quiz</h2>
+
+<div id="quizBox">
 <h3 id="question"></h3>
 <div id="options"></div>
-<div id="score"></div>
+</div>
+
+<div id="scoreScreen">
+<h3 id="finalScore"></h3>
+<button onclick="restartQuiz()">دوبارہ کھیلیں</button>
+</div>
+
 </div>
 
 <script>
@@ -67,52 +75,80 @@ button{
 const quiz = [
 {
 question: "اسلام کے کتنے ارکان ہیں؟",
-options: ["3", "4", "5", "6"],
+options: ["3","4","5","6"],
 answer: "5"
 },
 {
-question: "قرآن مجید کس مہینے میں نازل ہوا؟",
-options: ["محرم", "رمضان", "شوال", "ربیع الاول"],
-answer: "رمضان"
+question: "قرآن کس زبان میں نازل ہوا؟",
+options: ["اردو","عربی","انگریزی","فارسی"],
+answer: "عربی"
 },
 {
-question: "پہلی فرض نماز کونسی ہے؟",
-options: ["فجر", "ظہر", "مغرب", "عشاء"],
-answer: "فجر"
+question: "نماز دن میں کتنی فرض ہیں؟",
+options: ["3","4","5","6"],
+answer: "5"
 }
 ];
 
 let currentQuestion = 0;
 let score = 0;
 
-function loadQuestion(){
-document.getElementById("score").innerHTML = "";
+function loadQuestion() {
 const q = quiz[currentQuestion];
 document.getElementById("question").innerText = q.question;
+
 const optionsDiv = document.getElementById("options");
 optionsDiv.innerHTML = "";
 
 q.options.forEach(option => {
-const btn = document.createElement("button");
-btn.innerText = option;
-btn.classList.add("normal");
-btn.onclick = () => checkAnswer(option);
-optionsDiv.appendChild(btn);
+  const btn = document.createElement("button");
+  btn.innerText = option;
+  btn.onclick = () => checkAnswer(btn, option);
+  optionsDiv.appendChild(btn);
 });
 }
 
-function checkAnswer(selected){
-if(selected === quiz[currentQuestion].answer){
-score++;
-}
-currentQuestion++;
+function checkAnswer(button, selected) {
+const correctAnswer = quiz[currentQuestion].answer;
+const buttons = document.querySelectorAll("#options button");
 
-if(currentQuestion < quiz.length){
-loadQuestion();
-}else{
-document.getElementById("question").innerText = "🎉 گیم ختم! آپ کا اسکور: " + score;
-document.getElementById("options").innerHTML = "";
+buttons.forEach(btn => btn.disabled = true);
+
+if(selected === correctAnswer) {
+  button.classList.add("correct");
+  score++;
+} else {
+  button.classList.add("wrong");
+  buttons.forEach(btn => {
+    if(btn.innerText === correctAnswer){
+      btn.classList.add("correct");
+    }
+  });
 }
+
+setTimeout(() => {
+  currentQuestion++;
+  if(currentQuestion < quiz.length){
+    loadQuestion();
+  } else {
+    showScore();
+  }
+}, 1000);
+}
+
+function showScore(){
+document.getElementById("quizBox").style.display = "none";
+document.getElementById("scoreScreen").style.display = "block";
+document.getElementById("finalScore").innerText =
+"آپ کا اسکور: " + score + " / " + quiz.length;
+}
+
+function restartQuiz(){
+currentQuestion = 0;
+score = 0;
+document.getElementById("scoreScreen").style.display = "none";
+document.getElementById("quizBox").style.display = "block";
+loadQuestion();
 }
 
 loadQuestion();
