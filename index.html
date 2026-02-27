@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Noor Kids Islamic Quiz - Final</title>
+<title>Noor Kids Level Pro</title>
 
 <style>
 body{
@@ -26,34 +26,27 @@ border-radius:20px;
 box-shadow:0 10px 30px rgba(0,0,0,0.5);
 }
 
-h2{text-align:center;}
-
-input{
-width:100%;
-padding:12px;
-margin:10px 0;
-border:none;
-border-radius:8px;
-font-size:15px;
-}
-
 button{
 width:100%;
 padding:12px;
-margin:8px 0;
+margin:6px 0;
 border:none;
 border-radius:10px;
 font-size:15px;
 cursor:pointer;
 background:#3498db;
 color:white;
-transition:0.3s;
 }
 
-button:hover{opacity:0.9;}
+.locked{
+background:#555 !important;
+cursor:not-allowed;
+}
 
 .correct{background:#2ecc71 !important;}
 .wrong{background:#e74c3c !important;}
+
+.hidden{display:none;}
 
 #progress{
 height:8px;
@@ -70,28 +63,10 @@ background:#2ecc71;
 transition:0.4s;
 }
 
-#timer{
-text-align:right;
-font-size:14px;
-color:#f1c40f;
-margin-bottom:10px;
+.star{
+color:gold;
+font-size:18px;
 }
-
-#quizBox,#resultBox{display:none;}
-
-.resultCard{
-background:#222;
-padding:15px;
-border-radius:15px;
-margin-top:10px;
-text-align:center;
-}
-
-.grade{
-font-size:22px;
-margin-top:10px;
-}
-
 </style>
 </head>
 
@@ -99,87 +74,117 @@ margin-top:10px;
 
 <div class="card">
 
-<div id="startScreen">
-<h2>🌙 Noor Kids Islamic Quiz</h2>
-<input type="text" id="playerName" placeholder="اپنا نام لکھیں">
-<button onclick="startGame()">شروع کریں</button>
-</div>
+<h2>🌙 Noor Kids Quiz</h2>
 
-<div id="quizBox">
+<div id="levelScreen"></div>
+
+<div id="quizScreen" class="hidden">
 <div id="progress"><div id="progressBar"></div></div>
-<div id="timer">⏳ 10</div>
 <h3 id="question"></h3>
 <div id="options"></div>
 </div>
 
-<div id="resultBox">
-<h2>🎉 نتیجہ</h2>
-<div class="resultCard">
-<h3 id="resultName"></h3>
-<p id="finalScore"></p>
-<div class="grade" id="grade"></div>
-</div>
-<button onclick="restartGame()">دوبارہ کھیلیں</button>
+<div id="resultScreen" class="hidden">
+<h3 id="resultText"></h3>
+<div id="stars"></div>
+<button onclick="goToLevels()">واپس لیول</button>
 </div>
 
 </div>
 
 <script>
 
-const quiz = [
+const questionsPerLevel=15;
+
+// ===== سوال ڈیٹا =====
+const questionBank=[
 {q:"اسلام کے کتنے ارکان ہیں؟",o:["3","4","5","6"],a:"5"},
 {q:"نماز کتنی فرض ہیں؟",o:["3","4","5","6"],a:"5"},
-{q:"قرآن مجید کس مہینے میں نازل ہوا؟",o:["رجب","رمضان","شعبان","محرم"],a:"رمضان"},
-{q:"پہلی وحی کس غار میں نازل ہوئی؟",o:["ثور","حراء","احد","عرفات"],a:"حراء"},
-{q:"زکوٰۃ کس پر فرض ہے؟",o:["ہر شخص","امیر مسلمان","بچے","مسافر"],a:"امیر مسلمان"}
+{q:"قرآن کتنے پاروں پر مشتمل ہے؟",o:["20","25","30","40"],a:"30"},
+{q:"مدینہ کا پرانا نام کیا تھا؟",o:["یثرب","کوفہ","بصرہ","طائف"],a:"یثرب"},
+{q:"اسلامی سال کے کتنے مہینے ہیں؟",o:["10","11","12","13"],a:"12"},
+{q:"پہلا خلیفہ کون تھا؟",o:["عمرؓ","علیؓ","ابوبکرؓ","عثمانؓ"],a:"ابوبکرؓ"},
+{q:"قرآن کی پہلی سورت؟",o:["فاتحہ","بقرہ","اخلاص","ناس"],a:"فاتحہ"},
+{q:"اسلام کا پہلا رکن؟",o:["نماز","روزہ","کلمہ","حج"],a:"کلمہ"},
+{q:"نماز فجر فرض رکعت؟",o:["2","3","4","5"],a:"2"},
+{q:"حج کس مہینے میں؟",o:["رمضان","ذوالحجہ","محرم","رجب"],a:"ذوالحجہ"},
+{q:"زکوٰۃ فیصد؟",o:["1%","2.5%","5%","10%"],a:"2.5%"},
+{q:"قرآن میں کتنی سورتیں؟",o:["100","110","114","120"],a:"114"},
+{q:"مدینہ کی ہجرت کب ہوئی؟",o:["622","500","700","800"],a:"622"},
+{q:"شب قدر کس مہینے؟",o:["رمضان","رجب","محرم","شعبان"],a:"رمضان"},
+{q:"حضرت عمرؓ لقب؟",o:["فاروق","صدیق","غنی","مرتضیٰ"],a:"فاروق"},
+
+// مزید سوال شامل کرتے جائیں 👇
 ];
 
-let current=0;
-let score=0;
-let timer;
-let timeLeft=10;
-let player="";
+// ===== ویری ایبل =====
+let unlockedLevel=localStorage.getItem("unlockedLevel") || 1;
+let starsData=JSON.parse(localStorage.getItem("starsData")||"{}");
 
-function startGame(){
-player=document.getElementById("playerName").value;
-if(player===""){alert("نام درج کریں");return;}
-document.getElementById("startScreen").style.display="none";
-document.getElementById("quizBox").style.display="block";
+let currentLevel=1;
+let currentQuestion=0;
+let score=0;
+let levelQuestions=[];
+
+// ===== لیول بنائیں =====
+function generateLevels(){
+let totalLevels=Math.floor(questionBank.length/questionsPerLevel);
+let div=document.getElementById("levelScreen");
+div.innerHTML="";
+
+for(let i=1;i<=totalLevels;i++){
+let btn=document.createElement("button");
+btn.innerHTML="لیول "+i+" "+(starsData[i]?renderStars(starsData[i]):"");
+
+if(i>unlockedLevel){
+btn.classList.add("locked");
+}else{
+btn.onclick=()=>startLevel(i);
+}
+div.appendChild(btn);
+}
+}
+
+function renderStars(num){
+let s="";
+for(let i=0;i<num;i++){ s+="⭐"; }
+return "<span class='star'>"+s+"</span>";
+}
+
+// ===== لیول شروع =====
+function startLevel(level){
+currentLevel=level;
+currentQuestion=0;
+score=0;
+
+let start=(level-1)*questionsPerLevel;
+let end=start+questionsPerLevel;
+levelQuestions=questionBank.slice(start,end);
+
+document.getElementById("levelScreen").classList.add("hidden");
+document.getElementById("quizScreen").classList.remove("hidden");
+
 loadQuestion();
 }
 
 function loadQuestion(){
-let q=quiz[current];
+let q=levelQuestions[currentQuestion];
 document.getElementById("question").innerText=q.q;
 let optDiv=document.getElementById("options");
 optDiv.innerHTML="";
+
 q.o.forEach(opt=>{
 let btn=document.createElement("button");
 btn.innerText=opt;
 btn.onclick=()=>checkAnswer(opt,btn);
 optDiv.appendChild(btn);
 });
-updateProgress();
-startTimer();
-}
 
-function startTimer(){
-timeLeft=10;
-document.getElementById("timer").innerText="⏳ "+timeLeft;
-clearInterval(timer);
-timer=setInterval(()=>{
-timeLeft--;
-document.getElementById("timer").innerText="⏳ "+timeLeft;
-if(timeLeft<=0){
-clearInterval(timer);
-nextQuestion();
-}
-},1000);
+updateProgress();
 }
 
 function checkAnswer(selected,btn){
-clearInterval(timer);
-let correct=quiz[current].a;
+let correct=levelQuestions[currentQuestion].a;
 let buttons=document.querySelectorAll("#options button");
 buttons.forEach(b=>b.disabled=true);
 
@@ -188,49 +193,55 @@ btn.classList.add("correct");
 score++;
 }else{
 btn.classList.add("wrong");
-buttons.forEach(b=>{
-if(b.innerText===correct) b.classList.add("correct");
-});
 }
 
-setTimeout(nextQuestion,1000);
-}
-
-function nextQuestion(){
-current++;
-if(current<quiz.length){
+setTimeout(()=>{
+currentQuestion++;
+if(currentQuestion<questionsPerLevel){
 loadQuestion();
 }else{
 showResult();
 }
+},600);
 }
 
 function updateProgress(){
-let percent=(current/quiz.length)*100;
+let percent=(currentQuestion/questionsPerLevel)*100;
 document.getElementById("progressBar").style.width=percent+"%";
 }
 
 function showResult(){
-document.getElementById("quizBox").style.display="none";
-document.getElementById("resultBox").style.display="block";
-document.getElementById("resultName").innerText="نام: "+player;
-document.getElementById("finalScore").innerText="اسکور: "+score+" / "+quiz.length;
+document.getElementById("quizScreen").classList.add("hidden");
+document.getElementById("resultScreen").classList.remove("hidden");
 
-let gradeText="C";
-if(score===quiz.length) gradeText="A+ 🌟 بہترین!";
-else if(score>=4) gradeText="A 👍";
-else if(score>=3) gradeText="B 🙂";
+let starCount=0;
+if(score>=13) starCount=3;
+else if(score>=10) starCount=2;
+else if(score>=8) starCount=1;
 
-document.getElementById("grade").innerText="گریڈ: "+gradeText;
+if(starCount>0){
+starsData[currentLevel]=starCount;
+localStorage.setItem("starsData",JSON.stringify(starsData));
 }
 
-function restartGame(){
-current=0;
-score=0;
-document.getElementById("resultBox").style.display="none";
-document.getElementById("startScreen").style.display="block";
-document.getElementById("playerName").value="";
+if(score>=8 && currentLevel>=unlockedLevel){
+unlockedLevel++;
+localStorage.setItem("unlockedLevel",unlockedLevel);
 }
+
+document.getElementById("resultText").innerText=
+"لیول "+currentLevel+" مکمل\nاسکور: "+score+" / "+questionsPerLevel;
+
+document.getElementById("stars").innerHTML=renderStars(starCount);
+generateLevels();
+}
+
+function goToLevels(){
+document.getElementById("resultScreen").classList.add("hidden");
+document.getElementById("levelScreen").classList.remove("hidden");
+}
+
+generateLevels();
 
 </script>
 
