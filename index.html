@@ -3,137 +3,235 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Noor Kids Islamic Quiz</title>
+<title>Noor Kids Islamic Quiz - Final</title>
 
 <style>
 body{
-    font-family: Arial, sans-serif;
-    background: linear-gradient(135deg,#0f2027,#2c5364);
-    color: white;
-    text-align: center;
-    padding: 20px;
+margin:0;
+font-family:'Segoe UI',sans-serif;
+background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+color:white;
 }
 
-.container{
-    background:#111;
-    padding:20px;
-    border-radius:15px;
-    max-width:500px;
-    margin:auto;
+.card{
+background:#111;
+width:95%;
+max-width:500px;
+padding:25px;
+border-radius:20px;
+box-shadow:0 10px 30px rgba(0,0,0,0.5);
+}
+
+h2{text-align:center;}
+
+input{
+width:100%;
+padding:12px;
+margin:10px 0;
+border:none;
+border-radius:8px;
+font-size:15px;
 }
 
 button{
-    display:block;
-    width:100%;
-    margin:10px 0;
-    padding:12px;
-    border:none;
-    border-radius:8px;
-    font-size:16px;
-    cursor:pointer;
-    background:#3498db;
-    color:white;
+width:100%;
+padding:12px;
+margin:8px 0;
+border:none;
+border-radius:10px;
+font-size:15px;
+cursor:pointer;
+background:#3498db;
+color:white;
+transition:0.3s;
 }
 
-.correct{ background:#2ecc71 !important; }
-.wrong{ background:#e74c3c !important; }
+button:hover{opacity:0.9;}
 
-#score{
-    margin-top:15px;
-    font-size:18px;
+.correct{background:#2ecc71 !important;}
+.wrong{background:#e74c3c !important;}
+
+#progress{
+height:8px;
+background:#333;
+border-radius:10px;
+overflow:hidden;
+margin-bottom:10px;
 }
+
+#progressBar{
+height:100%;
+width:0%;
+background:#2ecc71;
+transition:0.4s;
+}
+
+#timer{
+text-align:right;
+font-size:14px;
+color:#f1c40f;
+margin-bottom:10px;
+}
+
+#quizBox,#resultBox{display:none;}
+
+.resultCard{
+background:#222;
+padding:15px;
+border-radius:15px;
+margin-top:10px;
+text-align:center;
+}
+
+.grade{
+font-size:22px;
+margin-top:10px;
+}
+
 </style>
 </head>
 
 <body>
 
-<div class="container">
+<div class="card">
+
+<div id="startScreen">
 <h2>🌙 Noor Kids Islamic Quiz</h2>
+<input type="text" id="playerName" placeholder="اپنا نام لکھیں">
+<button onclick="startGame()">شروع کریں</button>
+</div>
+
+<div id="quizBox">
+<div id="progress"><div id="progressBar"></div></div>
+<div id="timer">⏳ 10</div>
 <h3 id="question"></h3>
 <div id="options"></div>
-<div id="score"></div>
-<button id="restartBtn" onclick="restartQuiz()" style="display:none;">دوبارہ کھیلیں</button>
+</div>
+
+<div id="resultBox">
+<h2>🎉 نتیجہ</h2>
+<div class="resultCard">
+<h3 id="resultName"></h3>
+<p id="finalScore"></p>
+<div class="grade" id="grade"></div>
+</div>
+<button onclick="restartGame()">دوبارہ کھیلیں</button>
+</div>
+
 </div>
 
 <script>
+
 const quiz = [
-{
-question: "اسلام کے کتنے ارکان ہیں؟",
-options: ["3","4","5","6"],
-answer: "5"
-},
-{
-question: "قرآن مجید کس مہینے میں نازل ہوا؟",
-options: ["رجب","شعبان","رمضان","محرم"],
-answer: "رمضان"
-},
-{
-question: "نماز کتنی فرض ہیں؟",
-options: ["3","4","5","6"],
-answer: "5"
-}
+{q:"اسلام کے کتنے ارکان ہیں؟",o:["3","4","5","6"],a:"5"},
+{q:"نماز کتنی فرض ہیں؟",o:["3","4","5","6"],a:"5"},
+{q:"قرآن مجید کس مہینے میں نازل ہوا؟",o:["رجب","رمضان","شعبان","محرم"],a:"رمضان"},
+{q:"پہلی وحی کس غار میں نازل ہوئی؟",o:["ثور","حراء","احد","عرفات"],a:"حراء"},
+{q:"زکوٰۃ کس پر فرض ہے؟",o:["ہر شخص","امیر مسلمان","بچے","مسافر"],a:"امیر مسلمان"}
 ];
 
-let currentQuestion = 0;
-let score = 0;
+let current=0;
+let score=0;
+let timer;
+let timeLeft=10;
+let player="";
 
-function loadQuestion(){
-const q = quiz[currentQuestion];
-document.getElementById("question").innerText = q.question;
-
-const optionsDiv = document.getElementById("options");
-optionsDiv.innerHTML = "";
-
-q.options.forEach(option=>{
-const btn = document.createElement("button");
-btn.innerText = option;
-btn.onclick = ()=>checkAnswer(option, btn);
-optionsDiv.appendChild(btn);
-});
+function startGame(){
+player=document.getElementById("playerName").value;
+if(player===""){alert("نام درج کریں");return;}
+document.getElementById("startScreen").style.display="none";
+document.getElementById("quizBox").style.display="block";
+loadQuestion();
 }
 
-function checkAnswer(selected, btn){
-const correctAnswer = quiz[currentQuestion].answer;
-const buttons = document.querySelectorAll("#options button");
+function loadQuestion(){
+let q=quiz[current];
+document.getElementById("question").innerText=q.q;
+let optDiv=document.getElementById("options");
+optDiv.innerHTML="";
+q.o.forEach(opt=>{
+let btn=document.createElement("button");
+btn.innerText=opt;
+btn.onclick=()=>checkAnswer(opt,btn);
+optDiv.appendChild(btn);
+});
+updateProgress();
+startTimer();
+}
 
+function startTimer(){
+timeLeft=10;
+document.getElementById("timer").innerText="⏳ "+timeLeft;
+clearInterval(timer);
+timer=setInterval(()=>{
+timeLeft--;
+document.getElementById("timer").innerText="⏳ "+timeLeft;
+if(timeLeft<=0){
+clearInterval(timer);
+nextQuestion();
+}
+},1000);
+}
+
+function checkAnswer(selected,btn){
+clearInterval(timer);
+let correct=quiz[current].a;
+let buttons=document.querySelectorAll("#options button");
 buttons.forEach(b=>b.disabled=true);
 
-if(selected === correctAnswer){
+if(selected===correct){
 btn.classList.add("correct");
 score++;
 }else{
 btn.classList.add("wrong");
 buttons.forEach(b=>{
-if(b.innerText === correctAnswer){
-b.classList.add("correct");
-}
+if(b.innerText===correct) b.classList.add("correct");
 });
 }
 
-setTimeout(()=>{
-currentQuestion++;
-if(currentQuestion < quiz.length){
+setTimeout(nextQuestion,1000);
+}
+
+function nextQuestion(){
+current++;
+if(current<quiz.length){
 loadQuestion();
 }else{
-showScore();
+showResult();
 }
-},1000);
-}
-
-function showScore(){
-document.getElementById("question").innerText = "آپ کا اسکور: " + score + " / " + quiz.length;
-document.getElementById("options").innerHTML = "";
-document.getElementById("restartBtn").style.display="block";
 }
 
-function restartQuiz(){
-currentQuestion = 0;
-score = 0;
-document.getElementById("restartBtn").style.display="none";
-loadQuestion();
+function updateProgress(){
+let percent=(current/quiz.length)*100;
+document.getElementById("progressBar").style.width=percent+"%";
 }
 
-loadQuestion();
+function showResult(){
+document.getElementById("quizBox").style.display="none";
+document.getElementById("resultBox").style.display="block";
+document.getElementById("resultName").innerText="نام: "+player;
+document.getElementById("finalScore").innerText="اسکور: "+score+" / "+quiz.length;
+
+let gradeText="C";
+if(score===quiz.length) gradeText="A+ 🌟 بہترین!";
+else if(score>=4) gradeText="A 👍";
+else if(score>=3) gradeText="B 🙂";
+
+document.getElementById("grade").innerText="گریڈ: "+gradeText;
+}
+
+function restartGame(){
+current=0;
+score=0;
+document.getElementById("resultBox").style.display="none";
+document.getElementById("startScreen").style.display="block";
+document.getElementById("playerName").value="";
+}
+
 </script>
 
 </body>
