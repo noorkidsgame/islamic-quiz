@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Noor Kids Level Pro</title>
+<title>Noor Kids Islamic Learning</title>
 
 <style>
 body{
 margin:0;
-font-family:'Segoe UI',sans-serif;
+font-family:Segoe UI;
 background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
 display:flex;
 justify-content:center;
@@ -20,52 +20,42 @@ color:white;
 .card{
 background:#111;
 width:95%;
-max-width:500px;
+max-width:700px;
 padding:25px;
 border-radius:20px;
 box-shadow:0 10px 30px rgba(0,0,0,0.5);
+overflow:auto;
+max-height:90vh;
 }
 
 button{
 width:100%;
-padding:12px;
-margin:6px 0;
+padding:10px;
+margin:5px 0;
 border:none;
-border-radius:10px;
-font-size:15px;
-cursor:pointer;
+border-radius:8px;
 background:#3498db;
 color:white;
-}
-
-.locked{
-background:#555 !important;
-cursor:not-allowed;
+cursor:pointer;
+font-size:14px;
 }
 
 .correct{background:#2ecc71 !important;}
 .wrong{background:#e74c3c !important;}
-
 .hidden{display:none;}
 
 #progress{
-height:8px;
+height:6px;
 background:#333;
 border-radius:10px;
 overflow:hidden;
 margin-bottom:10px;
 }
-
 #progressBar{
 height:100%;
 width:0%;
 background:#2ecc71;
 transition:0.4s;
-}
-
-.star{
-color:gold;
-font-size:18px;
 }
 </style>
 </head>
@@ -74,9 +64,9 @@ font-size:18px;
 
 <div class="card">
 
-<h2>🌙 Noor Kids Quiz</h2>
+<h2>🌙 Noor Kids Islamic Learning</h2>
 
-<div id="levelScreen"></div>
+<div id="classScreen"></div>
 
 <div id="quizScreen" class="hidden">
 <div id="progress"><div id="progressBar"></div></div>
@@ -86,89 +76,83 @@ font-size:18px;
 
 <div id="resultScreen" class="hidden">
 <h3 id="resultText"></h3>
-<div id="stars"></div>
-<button onclick="goToLevels()">واپس لیول</button>
+<button onclick="goHome()">واپس کلاس پر جائیں</button>
 </div>
 
 </div>
+
+<!-- ALL CLASS FILES -->
+<script src="classes/nursery.js"></script>
+<script src="classes/lkg.js"></script>
+<script src="classes/ukg.js"></script>
+<script src="classes/class1.js"></script>
+<script src="classes/class2.js"></script>
+<script src="classes/class3.js"></script>
+<script src="classes/class4.js"></script>
+<script src="classes/class5.js"></script>
+<script src="classes/class6.js"></script>
+<script src="classes/class7.js"></script>
+<script src="classes/class8.js"></script>
+<script src="classes/class9.js"></script>
+<script src="classes/class10.js"></script>
+<script src="classes/class11.js"></script>
+<script src="classes/class12.js"></script>
+<script src="classes/graduate.js"></script>
+<script src="classes/postgraduate.js"></script>
 
 <script>
 
-const questionsPerLevel=15;
+const classMap = {
+"Nursery": nurseryQuestions,
+"LKG": lkgQuestions,
+"UKG": ukgQuestions,
+"Class 1": class1Questions,
+"Class 2": class2Questions,
+"Class 3": class3Questions,
+"Class 4": class4Questions,
+"Class 5": class5Questions,
+"Class 6": class6Questions,
+"Class 7": class7Questions,
+"Class 8": class8Questions,
+"Class 9": class9Questions,
+"Class 10": class10Questions,
+"Class 11": class11Questions,
+"Class 12": class12Questions,
+"Graduate": graduateQuestions,
+"Post Graduate": postgraduateQuestions
+};
 
-// ===== سوال ڈیٹا =====
-const questionBank=[
-{q:"اسلام کے کتنے ارکان ہیں؟",o:["3","4","5","6"],a:"5"},
-{q:"نماز کتنی فرض ہیں؟",o:["3","4","5","6"],a:"5"},
-{q:"قرآن کتنے پاروں پر مشتمل ہے؟",o:["20","25","30","40"],a:"30"},
-{q:"مدینہ کا پرانا نام کیا تھا؟",o:["یثرب","کوفہ","بصرہ","طائف"],a:"یثرب"},
-{q:"اسلامی سال کے کتنے مہینے ہیں؟",o:["10","11","12","13"],a:"12"},
-{q:"پہلا خلیفہ کون تھا؟",o:["عمرؓ","علیؓ","ابوبکرؓ","عثمانؓ"],a:"ابوبکرؓ"},
-{q:"قرآن کی پہلی سورت؟",o:["فاتحہ","بقرہ","اخلاص","ناس"],a:"فاتحہ"},
-{q:"اسلام کا پہلا رکن؟",o:["نماز","روزہ","کلمہ","حج"],a:"کلمہ"},
-{q:"نماز فجر فرض رکعت؟",o:["2","3","4","5"],a:"2"},
-{q:"حج کس مہینے میں؟",o:["رمضان","ذوالحجہ","محرم","رجب"],a:"ذوالحجہ"},
-{q:"زکوٰۃ فیصد؟",o:["1%","2.5%","5%","10%"],a:"2.5%"},
-{q:"قرآن میں کتنی سورتیں؟",o:["100","110","114","120"],a:"114"},
-{q:"مدینہ کی ہجرت کب ہوئی؟",o:["622","500","700","800"],a:"622"},
-{q:"شب قدر کس مہینے؟",o:["رمضان","رجب","محرم","شعبان"],a:"رمضان"},
-{q:"حضرت عمرؓ لقب؟",o:["فاروق","صدیق","غنی","مرتضیٰ"],a:"فاروق"},
-
-// مزید سوال شامل کرتے جائیں 👇
-];
-
-// ===== ویری ایبل =====
-let unlockedLevel=localStorage.getItem("unlockedLevel") || 1;
-let starsData=JSON.parse(localStorage.getItem("starsData")||"{}");
-
-let currentLevel=1;
-let currentQuestion=0;
+let currentClass="";
+let questions=[];
+let current=0;
 let score=0;
-let levelQuestions=[];
 
-// ===== لیول بنائیں =====
-function generateLevels(){
-let totalLevels=Math.floor(questionBank.length/questionsPerLevel);
-let div=document.getElementById("levelScreen");
-div.innerHTML="";
-
-for(let i=1;i<=totalLevels;i++){
+function loadClasses(){
+let div=document.getElementById("classScreen");
+for(let key in classMap){
 let btn=document.createElement("button");
-btn.innerHTML="لیول "+i+" "+(starsData[i]?renderStars(starsData[i]):"");
-
-if(i>unlockedLevel){
-btn.classList.add("locked");
-}else{
-btn.onclick=()=>startLevel(i);
-}
+btn.innerText=key;
+btn.onclick=()=>startClass(key);
 div.appendChild(btn);
 }
 }
 
-function renderStars(num){
-let s="";
-for(let i=0;i<num;i++){ s+="⭐"; }
-return "<span class='star'>"+s+"</span>";
-}
-
-// ===== لیول شروع =====
-function startLevel(level){
-currentLevel=level;
-currentQuestion=0;
+function startClass(c){
+currentClass=c;
+questions=[...classMap[c]];
+current=0;
 score=0;
 
-let start=(level-1)*questionsPerLevel;
-let end=start+questionsPerLevel;
-levelQuestions=questionBank.slice(start,end);
+shuffle(questions);
 
-document.getElementById("levelScreen").classList.add("hidden");
+document.getElementById("classScreen").classList.add("hidden");
 document.getElementById("quizScreen").classList.remove("hidden");
 
 loadQuestion();
 }
 
 function loadQuestion(){
-let q=levelQuestions[currentQuestion];
+let q=questions[current];
 document.getElementById("question").innerText=q.q;
 let optDiv=document.getElementById("options");
 optDiv.innerHTML="";
@@ -184,7 +168,7 @@ updateProgress();
 }
 
 function checkAnswer(selected,btn){
-let correct=levelQuestions[currentQuestion].a;
+let correct=questions[current].a;
 let buttons=document.querySelectorAll("#options button");
 buttons.forEach(b=>b.disabled=true);
 
@@ -196,8 +180,8 @@ btn.classList.add("wrong");
 }
 
 setTimeout(()=>{
-currentQuestion++;
-if(currentQuestion<questionsPerLevel){
+current++;
+if(current<questions.length){
 loadQuestion();
 }else{
 showResult();
@@ -206,7 +190,7 @@ showResult();
 }
 
 function updateProgress(){
-let percent=(currentQuestion/questionsPerLevel)*100;
+let percent=(current/questions.length)*100;
 document.getElementById("progressBar").style.width=percent+"%";
 }
 
@@ -214,34 +198,28 @@ function showResult(){
 document.getElementById("quizScreen").classList.add("hidden");
 document.getElementById("resultScreen").classList.remove("hidden");
 
-let starCount=0;
-if(score>=13) starCount=3;
-else if(score>=10) starCount=2;
-else if(score>=8) starCount=1;
-
-if(starCount>0){
-starsData[currentLevel]=starCount;
-localStorage.setItem("starsData",JSON.stringify(starsData));
-}
-
-if(score>=8 && currentLevel>=unlockedLevel){
-unlockedLevel++;
-localStorage.setItem("unlockedLevel",unlockedLevel);
-}
+let grade="C";
+if(score>=13) grade="A+ 🌟";
+else if(score>=10) grade="A";
+else if(score>=8) grade="B";
 
 document.getElementById("resultText").innerText=
-"لیول "+currentLevel+" مکمل\nاسکور: "+score+" / "+questionsPerLevel;
-
-document.getElementById("stars").innerHTML=renderStars(starCount);
-generateLevels();
+currentClass+" مکمل\nاسکور: "+score+" / "+questions.length+"\nگریڈ: "+grade;
 }
 
-function goToLevels(){
+function goHome(){
 document.getElementById("resultScreen").classList.add("hidden");
-document.getElementById("levelScreen").classList.remove("hidden");
+document.getElementById("classScreen").classList.remove("hidden");
 }
 
-generateLevels();
+function shuffle(array){
+for(let i=array.length-1;i>0;i--){
+let j=Math.floor(Math.random()*(i+1));
+[array[i],array[j]]=[array[j],array[i]];
+}
+}
+
+loadClasses();
 
 </script>
 
